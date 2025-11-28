@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wosito: El Juego del Récord</title>
+    <style>
+        /* --- ESTILOS GENERALES --- */
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            
+            /* --- FONDO PERSONALIZABLE --- */
+            background: url('chiikawa_fondo.jpg') no-repeat center center fixed;
+            background-color: #87CEEB; /* Color de respaldo por si no carga la imagen */
+            background-size: cover; 
+            
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            cursor: crosshair;
+            user-select: none;
+        }
+
+        /* --- INTERFAZ DE USUARIO (HUD) --- */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            /* Fondo oscuro semi-transparente para leer bien el texto sin las nubes */
+            background: rgba(0, 0, 0, 0.4); 
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* ESTILO DE LAS ETIQUETAS (LIMPIO, SIN NUBES) */
+        .hud-item {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6); /* Sombra para resaltar el texto */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hud-item span {
+            color: #ffd700; /* Dorado para los números */
+            margin-left: 8px;
+        }
+
+        /* --- PANTALLA DE INICIO (MENÚ) --- */
+        #pantalla-inicio {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-caja {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            animation: flotar 3s infinite ease-in-out;
+            border: 4px solid #87CEEB;
+        }
+
+        @keyframes flotar {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 { color: #042452; margin-top: 0; }
+        
+        input {
+            padding: 10px 15px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 200px;
+            text-align: center;
+        }
+
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            background: #ff4757;
+        }
+
+        /* --- ELEMENTOS DEL JUEGO --- */
+        #conejito {
+            position: absolute;
+            font-size: 80px;
+            pointer-events: none;
+            transition: transform 0.08s linear, font-size 0.3s ease;
+            left: 0;
+            top: 0;
+            z-index: 5;
+            will-change: transform;
+            
+            /* --- CONEJO MARRÓN --- */
+            /* Filtro fijo para color marrón */
+            filter: sepia(100%) saturate(300%) hue-rotate(315deg) brightness(70%);
+        }
+
+        /* Cuando es Cuy, quitamos el filtro marrón */
+        .cuy-mode {
+            filter: none !important;
+        }
+
+        .comida {
+            position: absolute;
+            font-size: 50px;
+            animation: aparecer 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+        }
+
+        /* Estilos de Comida Normal */
+        .tomate { filter: drop-shadow(0 0 8px red); z-index: 3; }
+        .zanahoria { filter: drop-shadow(0 0 5px gold); }
+
+        /* Estilos de Comida Nivel 100 */
+        .manzana { filter: drop-shadow(0 0 5px #ff0000); }
+        .chocolate { filter: drop-shadow(0 0 8px #4b3621); z-index: 3; }
+
+        @keyframes aparecer {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        /* Mensajes Flotantes */
+        #mensaje-flotante {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 0 #042452, -1px -1px 0 #042452, 1px -1px 0 #042452, -1px 1px 0 #042452, 1px 1px 0 #042452;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+            text-align: center;
+            width: 100%;
+        }
+
+        .visible { opacity: 1 !important; }
+
+        /* Botón música */
+        #btn-musica-esquina {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: none;
+            font-size: 24px;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR (HUD) -->
+    <div id="hud">
+        <div class="hud-item">Jugador: <span id="ui-nombre">---</span></div>
+        <div class="hud-item" id="cont-puntos">Zanahorias: <span id="ui-puntos">0</span></div>
+        <div class="hud-item">Récord: <span id="ui-record">0</span></div>
+    </div>
+
+    <!-- PANTALLA DE INICIO -->
+    <div id="pantalla-inicio">
+        <div class="modal-caja">
+            <h1>🐰 Wosito El Juego</h1>
+            <p>¡Guía a Wosito hacia las zanahorias!</p>
+            <p style="font-size: 0.9em; color: #666;">(Evita los tomates 🍅)</p>
+            <input type="text" id="input-nombre" placeholder="Tu nombre aquí" maxlength="12">
+            <br>
+            <button onclick="iniciarJuego()">¡JUGAR!</button>
+        </div>
+    </div>
+
+    <!-- ELEMENTOS DE JUEGO -->
+    <div id="mensaje-flotante"></div>
+    <div id="conejito">🐰</div>
+
+    <!-- AUDIO -->
+    <audio id="audio-fondo" loop>
+        <source src="conejito_musica.mp3" type="audio/mp3">
+    </audio>
+    <button id="btn-musica-esquina" onclick="alternarMusica()">🔊</button>
+
+    <script>
+        /* --- VARIABLES DE ESTADO --- */
+        const conejo = document.getElementById('conejito');
+        const pantallaInicio = document.getElementById('pantalla-inicio');
+        const mensajeFlotante = document.getElementById('mensaje-flotante');
+        
+        // Elementos UI
+        const uiNombre = document.getElementById('ui-nombre');
+        const uiPuntos = document.getElementById('ui-puntos');
+        const uiRecord = document.getElementById('ui-record');
+        const contPuntos = document.getElementById('cont-puntos');
+
+        // Variables de Juego
+        let jugando = false;
+        let puntaje = 0;
+        let record = localStorage.getItem('wositoRecord') || 0; 
+        let nombreJugador = "Anónimo";
+        let tamanoConejo = 80;
+        let esCapitanAndersom = false; 
+        
+        // Variables de Posición
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let conejoX = mouseX;
+        let conejoY = mouseY;
+        
+        // Intervalos
+        let intervaloComida;
+
+        // Inicializar UI Record
+        uiRecord.textContent = record;
+
+        /* --- LÓGICA DE INICIO --- */
+        function iniciarJuego() {
+            const input = document.getElementById('input-nombre');
+            if (input.value.trim() !== "") {
+                nombreJugador = input.value;
+            }
+            
+            uiNombre.textContent = nombreJugador;
+            pantallaInicio.style.display = 'none'; 
+            
+            reproducirMusica();
+            resetearPartida();
+        }
+
+        function resetearPartida() {
+            jugando = true;
+            puntaje = 0;
+            tamanoConejo = 80;
+            esCapitanAndersom = false; 
+            
+            // Resetear UI
+            actualizarUI();
+            conejo.textContent = '🐰';
+            conejo.className = ''; 
+            contPuntos.childNodes[0].nodeValue = "Zanahorias: "; 
+            
+            // Limpiar comida vieja
+            document.querySelectorAll('.comida').forEach(e => e.remove());
+            
+            // Reiniciar intervalos
+            if (intervaloComida) clearInterval(intervaloComida);
+            intervaloComida = setInterval(generarComida, 1000); 
+
+            conejo.style.fontSize = "80px";
+            // Filtro marrón fijo
+            conejo.style.filter = "sepia(100%) saturate(300%) hue-rotate(315deg) brightness(70%)";
+            conejo.style.transform = `scale(1)`; 
+            
+            mostrarMensaje("¡VAMOS!");
+            animarJuego();
+        }
+
+        function perderJuego(causaMuerte) {
+            jugando = false;
+            clearInterval(intervaloComida);
+            
+            let mensajeMuerte = "¡WOSITO COMIÓ TOMATE! 🤢";
+            
+            if (causaMuerte === 'chocolate') {
+                mensajeMuerte = "¡EL CUY NO COME CHOCOLATE! 🍫🤢";
+            }
+
+            if (puntaje > record) {
+                record = puntaje;
+                localStorage.setItem('wositoRecord', record);
+                uiRecord.textContent = record;
+                mostrarMensaje(`¡NUEVO RÉCORD: ${record}! 🏆`);
+            } else {
+                mostrarMensaje(mensajeMuerte);
+            }
+
+            // Efecto de muerte
+            conejo.style.transform = `translate(${conejoX - 40}px, ${conejoY - 40}px) scale(0.1) rotate(360deg)`;
+            
+            setTimeout(() => {
+                resetearPartida();
+            }, 3000);
+        }
+
+        /* --- BUCLE PRINCIPAL DE ANIMACIÓN --- */
+        function animarJuego() {
+            if (!jugando) return;
+
+            // Movimiento suave
+            conejoX += (mouseX - conejoX) * 0.1;
+            conejoY += (mouseY - conejoY) * 0.1;
+
+            const centroX = conejoX - (tamanoConejo / 2);
+            const centroY = conejoY - (tamanoConejo / 2 + 15);
+
+            let escalaX = (mouseX < conejoX) ? -1 : 1;
+            
+            conejo.style.transform = `translate(${centroX}px, ${centroY}px) scaleX(${escalaX})`;
+
+            detectarColisiones();
+            requestAnimationFrame(animarJuego);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        /* --- SISTEMA DE COMIDA --- */
+        function generarComida(forzarMalo = false) {
+            if (!jugando) return;
+
+            const el = document.createElement('div');
+            el.className = 'comida';
+            
+            let probabilidadMalo = 0.3;
+            if (puntaje > 20) probabilidadMalo = 0.5;
+
+            let esMalo = forzarMalo || (Math.random() < probabilidadMalo);
+
+            if (esCapitanAndersom) {
+                if (esMalo) {
+                    el.textContent = '🍫';
+                    el.classList.add('chocolate');
+                } else {
+                    el.textContent = '🍎';
+                    el.classList.add('manzana');
+                }
+            } else {
+                if (esMalo) {
+                    el.textContent = '🍅';
+                    el.classList.add('tomate');
+                } else {
+                    el.textContent = '🥕';
+                    el.classList.add('zanahoria');
+                }
+            }
+
+            const x = Math.random() * (window.innerWidth - 60) + 30;
+            const y = Math.random() * (window.innerHeight - 150) + 100;
+
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.body.appendChild(el);
+
+            setTimeout(() => { if (el.parentNode) el.remove(); }, 4000);
+        }
+
+        function detectarColisiones() {
+            const comidas = document.getElementsByClassName('comida');
+            
+            Array.from(comidas).forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const dx = Math.abs(conejoX - (rect.left + 25));
+                const dy = Math.abs(conejoY - (rect.top + 25));
+                
+                if (dx < tamanoConejo/2 && dy < tamanoConejo/2) {
+                    
+                    if (item.classList.contains('zanahoria') || item.classList.contains('manzana')) {
+                        puntaje++;
+                        item.remove();
+                        actualizarUI();
+                        efectoComer();
+                        verificarNiveles();
+                    } 
+                    else {
+                        if (item.classList.contains('chocolate')) {
+                            perderJuego('chocolate');
+                        } else {
+                            perderJuego('tomate');
+                        }
+                    }
+                }
+            });
+        }
+
+        function verificarNiveles() {
+            if (puntaje === 30) {
+                tamanoConejo = 120;
+                conejo.style.fontSize = tamanoConejo + "px";
+                mostrarMensaje("¡WOSITO GIGANTE!");
+            }
+            if (puntaje === 70) {
+                tamanoConejo = 150;
+                conejo.style.fontSize = tamanoConejo + "px";
+                mostrarMensaje("¡MEGA WOSITO!");
+            }
+            
+            if (puntaje === 100 && !esCapitanAndersom) {
+                transformarEnCuy();
+            }
+
+            if (puntaje >= 30 && puntaje % 10 === 0 && puntaje !== 100) {
+                mostrarMensaje("¡CUIDADO!");
+                generarComida(true);
+                setTimeout(() => generarComida(true), 300);
+                setTimeout(() => generarComida(true), 600);
+            }
+        }
+
+        function transformarEnCuy() {
+            esCapitanAndersom = true;
+            tamanoConejo = 100; 
+            conejo.style.fontSize = tamanoConejo + "px";
+            conejo.textContent = '🐹'; 
+            
+            conejo.classList.add('cuy-mode');
+            conejo.style.filter = "none";
+
+            mostrarMensaje("¡Desbloqueaste a Capitán Andersóm!");
+            contPuntos.childNodes[0].nodeValue = "Manzanas: ";
+            
+            document.querySelectorAll('.comida').forEach(e => e.remove());
+        }
+
+        /* --- UTILIDADES --- */
+        function actualizarUI() {
+            uiPuntos.textContent = puntaje;
+            uiPuntos.style.transform = "scale(1.5)";
+            setTimeout(() => uiPuntos.style.transform = "scale(1)", 100);
+        }
+
+        function efectoComer() {
+            // Si es Wosito (Conejo): NO HACEMOS NADA (no brilla, mantiene su color marrón)
+            if (!esCapitanAndersom) {
+                // No aplicar filtros extra
+                return;
+            } else {
+               // Si es Capitán Andersóm (Cuy): Brillo dorado opcional
+               conejo.style.filter = "drop-shadow(0 0 15px gold)";
+               setTimeout(() => conejo.style.filter = "none", 150);
+            }
+        }
+
+        function mostrarMensaje(txt) {
+            mensajeFlotante.textContent = txt;
+            mensajeFlotante.classList.add('visible');
+            setTimeout(() => mensajeFlotante.classList.remove('visible'), 2500);
+        }
+
+        /* --- AUDIO --- */
+        const audio = document.getElementById('audio-fondo');
+        function reproducirMusica() {
+            audio.volume = 0.3;
+            audio.play().catch(e => console.log("Audio espera interacción"));
+            document.getElementById('btn-musica-esquina').textContent = "🔊";
+        }
+        
+        function alternarMusica() {
+            if (audio.paused) {
+                audio.play();
+                document.getElementById('btn-musica-esquina').textContent = "🔊";
+            } else {
+                audio.pause();
+                document.getElementById('btn-musica-esquina').textContent = "🔇";
+            }
+        }
+    </script>
+</body>
+</html>
