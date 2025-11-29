@@ -419,22 +419,22 @@
         }
 
         function verificarNiveles() {
-            if (puntaje === 30) {
+            if (puntaje === 20) {
                 tamanoConejo = 120;
                 conejo.style.fontSize = tamanoConejo + "px";
                 mostrarMensaje("¡WOSITO GIGANTE!");
             }
-            if (puntaje === 70) {
+            if (puntaje === 35) {
                 tamanoConejo = 150;
                 conejo.style.fontSize = tamanoConejo + "px";
                 mostrarMensaje("¡MEGA WOSITO!");
             }
             
-            if (puntaje === 100 && !esCapitanAndersom) {
+            if (puntaje === 50 && !esCapitanAndersom) {
                 transformarEnCuy();
             }
 
-            if (puntaje >= 30 && puntaje % 10 === 0 && puntaje !== 100) {
+            if (puntaje >= 30 && puntaje % 10 === 0 && puntaje !== 50) {
                 mostrarMensaje("¡CUIDADO!");
                 generarComida(true);
                 setTimeout(() => generarComida(true), 300);
@@ -461,7 +461,7 @@
         function actualizarUI() {
             uiPuntos.textContent = puntaje;
             uiPuntos.style.transform = "scale(1.5)";
-            setTimeout(() => uiPuntos.style.transform = "scale(1)", 100);
+            setTimeout(() => uiPuntos.style.transform = "scale(1)", 50);
         }
 
         function efectoComer() {
