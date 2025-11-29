@@ -239,7 +239,7 @@
 
         // Variables de Juego
         let jugando = false;
-        let puntaje = 0;
+        let puntaje = 90;
         let record = localStorage.getItem('wositoRecord') || 0; 
         let nombreJugador = "Anónimo";
         let tamanoConejo = 80;
@@ -275,7 +275,7 @@
             jugando = true;
             puntaje = 0;
             tamanoConejo = 80;
-            esCapitanAndersom = false; 
+            esCapitanAndersom = true; 
             
             // Resetear UI
             actualizarUI();
