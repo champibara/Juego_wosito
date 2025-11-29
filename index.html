@@ -217,7 +217,7 @@
 
     <!-- ELEMENTOS DE JUEGO -->
     <div id="mensaje-flotante"></div>
-    <div id="conejito">🐰</div>
+    <div id="conejito">🐹/div>
 
     <!-- AUDIO -->
     <audio id="audio-fondo" loop>
@@ -243,7 +243,7 @@
         let record = localStorage.getItem('wositoRecord') || 0; 
         let nombreJugador = "Anónimo";
         let tamanoConejo = 80;
-        let esCapitanAndersom = false; 
+        let esCapitanAndersom = true; 
         
         // Variables de Posición
         let mouseX = window.innerWidth / 2;
@@ -275,11 +275,11 @@
             jugando = true;
             puntaje = 0;
             tamanoConejo = 80;
-            esCapitanAndersom = false; 
+            esCapitanAndersom = true; 
             
             // Resetear UI
             actualizarUI();
-            conejo.textContent = '🐰';
+            conejo.textContent = '🐹';
             conejo.className = ''; 
             contPuntos.childNodes[0].nodeValue = "Zanahorias: "; 
             
@@ -444,7 +444,7 @@
 
         function transformarEnCuy() {
             esCapitanAndersom = true;
-            tamanoConejo = 50; 
+            tamanoConejo = 40; 
             conejo.style.fontSize = tamanoConejo + "px";
             conejo.textContent = '🐹'; 
             
