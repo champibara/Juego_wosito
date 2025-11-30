@@ -21,7 +21,7 @@
             user-select: none;
         }
 
-        /* --- HUD --- */
+        /* --- HUD (Marcadores) --- */
         #hud {
             position: absolute;
             top: 0;
@@ -86,7 +86,6 @@
 
         h1 { color: #042452; margin-top: 0; }
         
-        /* Estilos de Inputs y Selects */
         input, select {
             padding: 10px 15px;
             font-size: 18px;
@@ -98,12 +97,7 @@
             font-family: inherit;
         }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
 
         button {
             background: #ff6b6b;
@@ -118,10 +112,7 @@
             margin-top: 10px;
         }
 
-        button:hover {
-            transform: scale(1.1);
-            background: #ff4757;
-        }
+        button:hover { transform: scale(1.1); background: #ff4757; }
 
         /* --- ELEMENTOS DEL JUEGO --- */
         #conejito {
@@ -133,14 +124,11 @@
             top: 0;
             z-index: 5;
             will-change: transform;
-            
-            /* Filtro marrón fijo */
+            /* Filtro marrón fijo para el conejo */
             filter: sepia(100%) saturate(300%) hue-rotate(315deg) brightness(70%);
         }
 
-        .cuy-mode {
-            filter: none !important;
-        }
+        .cuy-mode { filter: none !important; }
 
         .comida {
             position: absolute;
@@ -159,7 +147,6 @@
             to { transform: scale(1); }
         }
 
-        /* Mensajes Flotantes */
         #mensaje-flotante {
             position: absolute;
             top: 50%;
@@ -168,7 +155,7 @@
             font-size: 60px;
             font-weight: bold;
             color: white;
-            text-shadow: 2px 2px 0 #042452, -1px -1px 0 #042452, 1px -1px 0 #042452, -1px 1px 0 #042452, 1px 1px 0 #042452;
+            text-shadow: 2px 2px 0 #042452;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
@@ -179,7 +166,6 @@
 
         .visible { opacity: 1 !important; }
 
-        /* Botón música */
         #btn-musica-esquina {
             position: absolute;
             bottom: 20px;
@@ -201,10 +187,11 @@
 </head>
 <body>
 
-    <!-- HUD -->
+    
     <div id="hud">
         <div class="hud-item">Jugador: <span id="ui-nombre">---</span></div>
-        <div class="hud-item" id="cont-puntos">Zanahorias: <span id="ui-puntos">0</span></div>
+        <
+        <div class="hud-item"><span id="lbl-tipo-comida">Zanahorias:</span> <span id="ui-puntos">0</span></div>
         <div class="hud-item">Récord: <span id="ui-record">0</span></div>
     </div>
 
@@ -214,10 +201,8 @@
             <h1>🐰 Wosito El Juego</h1>
             <p>¡Guía a Wosito y evita los tomates!</p>
             
-            <!-- Entrada de Nombre -->
             <input type="text" id="input-nombre" placeholder="Tu nombre aquí" maxlength="12">
             
-            <!-- Selector de Música -->
             <label for="selector-musica">🎵 Elige tu música:</label>
             <select id="selector-musica">
                 <option value="conejito_musica.mp3">Fiesta de Pijamas 🎶</option>
@@ -230,29 +215,25 @@
         </div>
     </div>
 
-    <!-- ELEMENTOS DE JUEGO -->
     <div id="mensaje-flotante"></div>
     <div id="conejito">🐰</div>
 
-    <!-- AUDIO  -->
     <audio id="audio-fondo" loop>
         <source src="" type="audio/mp3">
     </audio>
     <button id="btn-musica-esquina" onclick="alternarMusica()">🔊</button>
 
     <script>
-        /* --- VARIABLES DE ESTADO --- */
+        /* --- VARIABLES --- */
         const conejo = document.getElementById('conejito');
         const pantallaInicio = document.getElementById('pantalla-inicio');
         const mensajeFlotante = document.getElementById('mensaje-flotante');
         
-        // Elementos UI
         const uiNombre = document.getElementById('ui-nombre');
         const uiPuntos = document.getElementById('ui-puntos');
         const uiRecord = document.getElementById('ui-record');
-        const contPuntos = document.getElementById('cont-puntos');
+        const lblTipoComida = document.getElementById('lbl-tipo-comida'); // Referencia segura
 
-        // Variables de Juego
         let jugando = false;
         let puntaje = 0;
         let record = localStorage.getItem('wositoRecord') || 0; 
@@ -260,34 +241,27 @@
         let tamanoConejo = 80;
         let esCapitanAndersom = false; 
         
-        // Variables de Posición
         let mouseX = window.innerWidth / 2;
         let mouseY = window.innerHeight / 2;
         let conejoX = mouseX;
         let conejoY = mouseY;
         
-        // Intervalos
         let intervaloComida;
 
-        // Inicializar UI Record
         uiRecord.textContent = record;
 
-        /* --- LÓGICA DE INICIO --- */
+        /* --- INICIO --- */
         function iniciarJuego() {
-            // 1. Configurar Nombre
             const input = document.getElementById('input-nombre');
             if (input.value.trim() !== "") {
                 nombreJugador = input.value;
             }
             uiNombre.textContent = nombreJugador;
 
-            // 2. Configurar Música
             const selectorMusica = document.getElementById('selector-musica');
             const audio = document.getElementById('audio-fondo');
-            // Cambiamos la fuente del audio según lo elegido
             audio.src = selectorMusica.value;
 
-            // 3. Ocultar menú y arrancar
             pantallaInicio.style.display = 'none'; 
             reproducirMusica();
             resetearPartida();
@@ -299,21 +273,17 @@
             tamanoConejo = 80;
             esCapitanAndersom = false; 
             
-            // Resetear UI
             actualizarUI();
             conejo.textContent = '🐰';
             conejo.className = ''; 
-            contPuntos.childNodes[0].nodeValue = "Zanahorias: "; 
+            lblTipoComida.textContent = "Zanahorias:"; // Texto seguro
             
-            // Limpiar comida vieja
             document.querySelectorAll('.comida').forEach(e => e.remove());
             
-            // Reiniciar intervalos
             if (intervaloComida) clearInterval(intervaloComida);
             intervaloComida = setInterval(generarComida, 1000); 
 
             conejo.style.fontSize = "80px";
-            // Filtro marrón fijo
             conejo.style.filter = "sepia(100%) saturate(300%) hue-rotate(315deg) brightness(70%)";
             conejo.style.transform = `scale(1)`; 
             
@@ -325,10 +295,9 @@
             jugando = false;
             clearInterval(intervaloComida);
             
-            let mensajeMuerte = "¡WOSITO COMIÓ TOMATE! ";
-            
+            let mensajeMuerte = "¡WOSITO COMIÓ TOMATE! 🤢";
             if (causaMuerte === 'chocolate') {
-                mensajeMuerte = "¡CAPI NO COME CHOCOLATE! ";
+                mensajeMuerte = "¡EL CUY NO COME CHOCOLATE! 🍫🤢";
             }
 
             if (puntaje > record) {
@@ -340,21 +309,17 @@
                 mostrarMensaje(mensajeMuerte);
             }
 
-            // Efecto de muerte
             conejo.style.transform = `translate(${conejoX - 40}px, ${conejoY - 40}px) scale(0.1) rotate(360deg)`;
             
             setTimeout(() => {
-                // Volver a mostrar pantalla de inicio para cambiar canción si quiere
                 pantallaInicio.style.display = 'flex';
-                // Si prefieres reinicio directo, cambia la línea de arriba por: resetearPartida();
             }, 3000);
         }
 
-        /* --- BUCLE PRINCIPAL DE ANIMACIÓN --- */
+        /* --- LOOP PRINCIPAL --- */
         function animarJuego() {
             if (!jugando) return;
 
-            // Movimiento suave
             conejoX += (mouseX - conejoX) * 0.1;
             conejoY += (mouseY - conejoY) * 0.1;
 
@@ -362,7 +327,6 @@
             const centroY = conejoY - (tamanoConejo / 2 + 15);
 
             let escalaX = (mouseX < conejoX) ? -1 : 1;
-            
             conejo.style.transform = `translate(${centroX}px, ${centroY}px) scaleX(${escalaX})`;
 
             detectarColisiones();
@@ -374,33 +338,28 @@
             mouseY = e.clientY;
         });
 
-        /* --- SISTEMA DE COMIDA --- */
+        /* --- COMIDA --- */
         function generarComida(forzarMalo = false) {
             if (!jugando) return;
 
-            // Lógica de Zona Segura (Anti-Instakill)
+            // ZONA SEGURA (Evitar aparición encima del conejo)
             let x, y;
             let esSeguro = false;
             let intentos = 0;
-            const radioSeguridad = 200; // 200 pixeles de distancia mínima
+            const radioSeguridad = 200; 
 
-            // Intentamos encontrar una posición alejada del conejo
             while (!esSeguro && intentos < 10) {
                 x = Math.random() * (window.innerWidth - 60) + 30;
                 y = Math.random() * (window.innerHeight - 150) + 100;
 
-                // Calcular distancia (Teorema de Pitágoras)
                 const dx = x - conejoX;
                 const dy = y - conejoY;
                 const distancia = Math.sqrt(dx*dx + dy*dy);
 
-                if (distancia > radioSeguridad) {
-                    esSeguro = true;
-                }
+                if (distancia > radioSeguridad) esSeguro = true;
                 intentos++;
             }
 
-            // Crear el elemento
             const el = document.createElement('div');
             el.className = 'comida';
             
@@ -496,7 +455,7 @@
             conejo.style.filter = "none";
 
             mostrarMensaje("¡Desbloqueaste a Capitán Andersóm!");
-            contPuntos.childNodes[0].nodeValue = "Manzanas: ";
+            lblTipoComida.textContent = "Manzanas:"; // CAMBIO SEGURO
             
             document.querySelectorAll('.comida').forEach(e => e.remove());
         }
@@ -505,6 +464,15 @@
             uiPuntos.textContent = puntaje;
             uiPuntos.style.transform = "scale(1.5)";
             setTimeout(() => uiPuntos.style.transform = "scale(1)", 100);
+        }
+
+        function efectoComer() {
+            if (!esCapitanAndersom) {
+                return; // Wosito no brilla
+            } else {
+               conejo.style.filter = "drop-shadow(0 0 15px gold)";
+               setTimeout(() => conejo.style.filter = "none", 150);
+            }
         }
 
         function mostrarMensaje(txt) {
@@ -517,7 +485,6 @@
         const audio = document.getElementById('audio-fondo');
         function reproducirMusica() {
             audio.volume = 0.3;
-            // Verificar si el src es válido para evitar errores
             if(audio.src) {
                 audio.play().catch(e => console.log("Audio espera interacción"));
                 document.getElementById('btn-musica-esquina').textContent = "🔊";
@@ -536,3 +503,4 @@
     </script>
 </body>
 </html>
+
